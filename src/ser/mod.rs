@@ -16,13 +16,27 @@ where
     value.serialize(&mut s)
 }
 
-/// Serializes `value` into `writer` in a pretty way.
-pub fn to_writer_pretty<W, T>(writer: W, value: &T, config: PrettyConfig) -> Result<()>
+/// Serializes `value` into `writer with struct names`
+pub fn to_writer_with_struct_names<W, T>(writer: W, value: &T) -> Result<()>
 where
     W: io::Write,
     T: Serialize,
 {
-    let mut s = Serializer::new(writer, Some(config), false)?;
+    let mut s = Serializer::new(writer, None, true)?;
+    value.serialize(&mut s)
+}
+
+/// Serializes `value` into `writer` in a pretty way.
+pub fn to_writer_pretty_with_struct_names<W, T>(
+    writer: W,
+    value: &T,
+    config: PrettyConfig,
+) -> Result<()>
+where
+    W: io::Write,
+    T: Serialize,
+{
+    let mut s = Serializer::new(writer, Some(config), true)?;
     value.serialize(&mut s)
 }
 
@@ -40,6 +54,20 @@ where
     Ok(String::from_utf8(s.output).expect("Ron should be utf-8"))
 }
 
+/// Serializes `value` and returns it as string with struct names.
+///
+/// This function does not generate any newlines or nice formatting;
+/// if you want that, you can use `to_string_pretty` instead.
+pub fn to_string_with_struct_names<T>(value: &T) -> Result<String>
+where
+    T: Serialize,
+{
+    let buf = Vec::new();
+    let mut s = Serializer::new(buf, None, true)?;
+    value.serialize(&mut s)?;
+    Ok(String::from_utf8(s.output).expect("Ron should be utf-8"))
+}
+
 /// Serializes `value` in the recommended RON layout in a pretty way.
 pub fn to_string_pretty<T>(value: &T, config: PrettyConfig) -> Result<String>
 where
@@ -47,6 +75,17 @@ where
 {
     let buf = Vec::new();
     let mut s = Serializer::new(buf, Some(config), false)?;
+    value.serialize(&mut s)?;
+    Ok(String::from_utf8(s.output).expect("Ron should be utf-8"))
+}
+
+/// Serializes `value` in the recommended RON layout in a pretty way adding struct names.
+pub fn to_string_pretty_with_struct_names<T>(value: &T, config: PrettyConfig) -> Result<String>
+where
+    T: Serialize,
+{
+    let buf = Vec::new();
+    let mut s = Serializer::new(buf, Some(config), true)?;
     value.serialize(&mut s)?;
     Ok(String::from_utf8(s.output).expect("Ron should be utf-8"))
 }
